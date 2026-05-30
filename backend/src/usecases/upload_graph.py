@@ -3,6 +3,7 @@ from typing import Any
 
 from src.di.providers.sessions import GraphSession, SessionStore
 from src.graph.builder import GraphBuilder
+from src.graph.clustering import build_analysis_result
 from src.graph.detectors import detect_cycles, detect_fanout, detect_shared_device, detect_transit
 from src.graph.ibm import read_ibm_transactions
 from src.graph.layout import compute_graph_layout
@@ -38,6 +39,7 @@ class UploadGraphUseCase:
         alerts = flatten_alerts(cycles, fanout, transit, shared_device)
         scores, edge_scores = apply_alert_scores(graph, alerts)
         layout = compute_graph_layout(graph)
+        analysis_result = build_analysis_result(graph, layout, scores)
 
         session_id = str(uuid.uuid4())
         self._session_store.save(
@@ -50,6 +52,7 @@ class UploadGraphUseCase:
                 transit=transit,
                 shared_device=shared_device,
                 scores=scores,
+                analysis_result=analysis_result,
                 alerts=alerts,
                 edge_scores=edge_scores,
             ),

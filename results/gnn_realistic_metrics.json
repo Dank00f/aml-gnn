@@ -1,0 +1,73 @@
+{
+  "input": "data\\generated\\ibm_realistic_gnn_1246.csv",
+  "expanded_to": null,
+  "transaction_nodes": 1246,
+  "transaction_edges": 1177,
+  "feature_count": 8,
+  "laundering_labels": 138,
+  "class_balance": {
+    "negative": 1108,
+    "positive": 138
+  },
+  "feature_names": [
+    "amount",
+    "amount_received",
+    "payment_currency_code",
+    "receiving_currency_code",
+    "payment_format_code",
+    "hour",
+    "sender_out_count",
+    "receiver_in_count"
+  ],
+  "status": "trained",
+  "model": "numpy_two_layer_gcn",
+  "epochs": 200,
+  "seed": 42,
+  "train_size": 873,
+  "test_size": 373,
+  "loss": 0.2705436900145348,
+  "accuracy": 0.935656836461126,
+  "precision": 1.0,
+  "recall": 0.4146341463414634,
+  "f1": 0.5862068965517241,
+  "roc_auc": 0.8830443726124009,
+  "pr_auc": 0.6628564335533503,
+  "confusion_matrix": {
+    "tp": 17,
+    "tn": 332,
+    "fp": 0,
+    "fn": 24
+  },
+  "baselines": {
+    "majority_class": {
+      "accuracy": 0.8900804289544236,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.575668527769615,
+      "pr_auc": 0.17067625922120438,
+      "confusion_matrix": {
+        "tp": 0,
+        "tn": 332,
+        "fp": 0,
+        "fn": 41
+      },
+      "predicted_class": 0
+    },
+    "feature_logistic_regression": {
+      "accuracy": 0.8847184986595175,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.7782104025859535,
+      "pr_auc": 0.3188298316433533,
+      "confusion_matrix": {
+        "tp": 0,
+        "tn": 330,
+        "fp": 2,
+        "fn": 41
+      },
+      "loss": 0.334302885076298
+    }
+  }
+}

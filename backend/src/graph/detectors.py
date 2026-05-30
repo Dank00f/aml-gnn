@@ -11,7 +11,7 @@ def _amount(data: dict[str, Any]) -> float:
     value = data.get('amount', data.get('amount_paid', 0.0))
     try:
         return float(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return 0.0
 
 
@@ -19,7 +19,7 @@ def _timestamp(data: dict[str, Any]) -> int:
     value = data.get('timestamp', 0)
     try:
         return int(value)
-    except TypeError, ValueError:
+    except (TypeError, ValueError):
         return 0
 
 

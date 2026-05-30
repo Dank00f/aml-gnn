@@ -9,13 +9,14 @@ __all__ = ['SessionStoreProvider', 'SessionStore', 'GraphSession']
 
 @dataclass
 class GraphSession:
-    graph: nx.DiGraph
+    graph: nx.DiGraph | nx.MultiDiGraph
     layout: dict[str, tuple[float, float]]
     cycles: list[dict]
     fanout: list[dict]
     transit: list[dict]
     shared_device: list[dict]
     scores: dict[str, float]
+    analysis_result: dict[str, Any]
     alerts: list[dict[str, Any]] = field(default_factory=list)
     edge_scores: dict[str, float] = field(default_factory=dict)
 

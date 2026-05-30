@@ -1,3 +1,4 @@
+import json
 import math
 from collections.abc import AsyncGenerator
 from typing import Any
@@ -150,6 +151,8 @@ class StreamGraphUseCase:
                 items=_make_serializable(items),
             )
             yield f'event: detector_result\ndata: {result.model_dump_json()}\n\n'
+
+        yield f'event: analysis_result\ndata: {json.dumps(session.analysis_result)}\n\n'
 
         yield 'event: scoring_done\ndata: {}\n\n'
         yield 'event: completed\ndata: {}\n\n'

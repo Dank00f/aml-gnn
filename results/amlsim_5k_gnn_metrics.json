@@ -1,0 +1,83 @@
+{
+  "input": "data\\AMLSim CSV\\transactions.csv",
+  "expanded_to": null,
+  "sampled_to": 5000,
+  "sampling": {
+    "total_rows": 1323234,
+    "selected_rows": 5000,
+    "selected_positive_rows": 1719,
+    "selected_negative_rows": 3281,
+    "fraud_account_count": 1639,
+    "context_negative_rows": 3281,
+    "random_negative_rows": 0
+  },
+  "transaction_nodes": 5000,
+  "transaction_edges": 637,
+  "feature_count": 8,
+  "laundering_labels": 1719,
+  "class_balance": {
+    "negative": 3281,
+    "positive": 1719
+  },
+  "feature_names": [
+    "amount",
+    "amount_received",
+    "payment_currency_code",
+    "receiving_currency_code",
+    "payment_format_code",
+    "hour",
+    "sender_out_count",
+    "receiver_in_count"
+  ],
+  "status": "trained",
+  "model": "numpy_two_layer_gcn",
+  "epochs": 200,
+  "seed": 42,
+  "train_size": 3500,
+  "test_size": 1500,
+  "loss": 0.6276487787385621,
+  "accuracy": 0.656,
+  "precision": 0.0,
+  "recall": 0.0,
+  "f1": 0.0,
+  "roc_auc": 0.6478560061763408,
+  "pr_auc": 0.4572546113114794,
+  "confusion_matrix": {
+    "tp": 0,
+    "tn": 984,
+    "fp": 0,
+    "fn": 516
+  },
+  "baselines": {
+    "majority_class": {
+      "accuracy": 0.656,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.5113620249574589,
+      "pr_auc": 0.352180018559777,
+      "confusion_matrix": {
+        "tp": 0,
+        "tn": 984,
+        "fp": 0,
+        "fn": 516
+      },
+      "predicted_class": 0
+    },
+    "feature_logistic_regression": {
+      "accuracy": 0.656,
+      "precision": 0.0,
+      "recall": 0.0,
+      "f1": 0.0,
+      "roc_auc": 0.6102169597277368,
+      "pr_auc": 0.4260640056116664,
+      "confusion_matrix": {
+        "tp": 0,
+        "tn": 984,
+        "fp": 0,
+        "fn": 516
+      },
+      "loss": 0.6280631119071146
+    }
+  }
+}

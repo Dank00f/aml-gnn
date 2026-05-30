@@ -69,10 +69,10 @@ class GraphBuilder:
         self,
         file_bytes: bytes,
         column_mapping: ColumnMapping,
-    ) -> nx.DiGraph:
-        """Строит ориентированный граф из CSV-файла с заданным маппингом столбцов."""
+    ) -> nx.MultiDiGraph:
+        """Build a directed transaction multigraph from a mapped CSV file."""
         df = pd.read_csv(io.BytesIO(file_bytes))
-        graph = nx.DiGraph()
+        graph = nx.MultiDiGraph()
         has_entity_col = 'entity_type' in df.columns
 
         for idx, row in df.iterrows():
@@ -133,6 +133,7 @@ class GraphBuilder:
             graph.add_edge(
                 sender,
                 receiver,
+                key=f'tx_{idx}',
                 id=f'tx_{idx}',
                 transaction_id=f'tx_{idx}',
                 amount_paid=amount_paid,
@@ -146,6 +147,7 @@ class GraphBuilder:
                 device_id=device_id,
                 ip_address=ip_address,
                 is_laundering=is_laundering,
+                type='transfer',
                 risk_score=0.0,
                 alerts=[],
             )
@@ -262,7 +264,7 @@ class GraphBuilder:
 
     def compute_layout(
         self,
-        graph: nx.DiGraph,
+        graph: nx.DiGraph | nx.MultiDiGraph,
         max_nodes: int = 2000,
     ) -> dict[str, tuple[float, float]]:
         """Compute 2D graph coordinates."""

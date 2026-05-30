@@ -1,260 +1,221 @@
-# AML Graph Visualizer (aml-graph)
+# AML Graph
 
-## О проекте
+MVP дипломного проекта для визуального AML/anti-fraud анализа транзакционного графа.
 
-**AML Graph Visualizer** - инструмент для финансовых следователей, позволяющий визуализировать транзакционные графы и
-автоматически выявлять подозрительные паттерны отмывания денег.
+Текущий проверенный состав:
 
-Система анализирует структуру транзакций и выявляет такие сценарии, как циклы (layering), дробление платежей (smurfing),
-транзитные узлы и использование общих устройств/IP.
+- FastAPI backend;
+- pandas parser для IBM Transactions for AML CSV;
+- NetworkX `MultiDiGraph`;
+- rule-based detectors: cycles, fan-out, transit, shared device/IP;
+- risk scoring по alerts;
+- clustering: Louvain на небольших графах и WCC fallback на крупных;
+- server-side layout;
+- SSE stream;
+- frontend из архивной версии проекта на Next.js + React + TypeScript + cosmos.gl;
+- frontend risk filter, detail panel выбранного узла и раскрываемые детали связанных транзакций;
+- backend tests;
+- benchmark script.
+- optional offline GNN dataset and NumPy GCN baseline.
 
-Проект разработан в рамках дипломной работы (ДВФУ, ИМиКТ, 2026) и **не является production-решением** - это MVP для
-демонстрации концепции анализа графов.
+## Стек
 
----
+Backend:
 
-## Архитектура
+- Python 3.14;
+- FastAPI;
+- pandas;
+- NetworkX;
+- Pydantic;
+- SSE;
+- in-memory session storage;
+- pytest, ruff, ty.
 
-Поток данных в системе:
+Frontend:
 
-```mermaid
-flowchart TD
-    A[CSV файл] --> B[POST /api/v1/upload]
-    B --> C["Построение графа\n(NetworkX, in-memory)"]
-    C --> D["GET /api/v1/stream/{session_id}\n(SSE)"]
-    D --> E["Frontend (cosmos.gl)\nвизуализирует граф"]
-```
+- Next.js 16;
+- React 19;
+- TypeScript;
+- Radix UI;
+- Tailwind CSS;
+- `@cosmos.gl/graph`.
 
-- Все данные хранятся в памяти (in-memory)
-- Персистентная база данных отсутствует
-- Каждая загрузка создаёт отдельную сессию (UUID)
+Не используется в текущем backend runtime: PostgreSQL, Redis, RabbitMQ, Taskiq, LadybugDB, GNN training/inference.
 
----
+## Запуск Backend
 
-## Быстрый старт
-
-### Требования
-
-- Python 3.14+
-- Node.js 24+
-- Docker + Docker Compose
-- uv
-- npm
-- GNU Make
-
----
-
-### Вариант 1 - через Docker
-
-```bash
-make env
-make build
-make up
-```
-
-Приложение будет доступно:
-
-- Backend: http://localhost:8000
-- Frontend: http://localhost:3000
-
----
-
-### Вариант 2 - локально (без Docker)
-
-```bash
-# Backend
-cd backend
+```powershell
+cd C:\Users\Dankoff\PycharmProjects\aml-graph\backend
 uv sync
 uv run python -m src.main
-
-# Frontend
-cd frontend
-npm install
-npm run dev
 ```
 
----
+Проверка:
 
-## Формат входных данных
+```powershell
+Invoke-RestMethod http://127.0.0.1:9090/api/v1/health
+```
 
-CSV файл должен содержать следующие поля:
+Ожидаемый ответ:
 
-### Обязательные
+```json
+{"status":"ok"}
+```
 
-- sender_id - отправитель
-- receiver_id - получатель
-- amount - сумма
-- timestamp - время (Unix или ISO 8601)
+## Запуск Frontend
 
-### Опциональные
+```powershell
+cd C:\Users\Dankoff\PycharmProjects\aml-graph\frontend
+npm.cmd install
+npm.cmd run dev
+```
 
-- device_id
-- ip_address
-
----
-
-### Пример
+Открыть:
 
 ```text
-sender_id,receiver_id,amount,timestamp,device_id
-C1,A2,1000,1710000000,D1
-A2,A3,980,1710000500,D1
-A3,C1,970,1710001000,D2
+http://127.0.0.1:3000
 ```
 
----
+Frontend ожидает backend на:
 
-## Детекторы паттернов
+```text
+http://127.0.0.1:9090
+```
 
-### 1. Циклы (Layering)
+Это задано в `.env.example` через `NEXT_PUBLIC_API_BASE`.
 
-Поиск простых циклов длиной 2–6:
+## CSV Формат
 
-- Малый промежуток времени Δt
-- Высокая плотность потока ρ
+Основной endpoint:
 
-ρ = total_weight / Δt
+```http
+POST /api/v1/upload/ibm
+```
 
----
+Ожидаемые IBM columns:
 
-### 2. Дробление (Smurfing / Fan-out)
+- `Timestamp`
+- `From Bank`
+- `Account`
+- `To Bank`
+- `Account.1`
+- `Amount Received`
+- `Receiving Currency`
+- `Amount Paid`
+- `Payment Currency`
+- `Payment Format`
+- `Is Laundering`
 
-- Один отправитель
-- Несколько получателей
-- Похожие суммы
-- Короткое временное окно
+Нормализация:
 
----
+- `sender_id = From Bank + ":" + Account`;
+- `receiver_id = To Bank + ":" + Account.1`;
+- `amount = Amount Paid`;
+- `Is Laundering` хранится как label и не используется в rule-based scoring.
 
-### 3. Транзитные узлы
+Excel upload не включён. `.xlsx/.xls` сейчас roadmap.
 
-- Высокая посредническая роль (betweenness centrality)
-- Баланс входящих и исходящих средств
+## API
 
----
+См. [docs/API_AND_SSE_CONTRACT.md](docs/API_AND_SSE_CONTRACT.md).
 
-### 4. Общее устройство
+Основные endpoints:
 
-- Несколько клиентов используют:
-    - один device_id
-    - один ip_address
+```text
+POST /api/v1/upload/ibm
+POST /api/v1/upload
+GET  /api/v1/stream/{session_id}
+GET  /api/v1/sessions/{session_id}/stats
+GET  /api/v1/sessions/{session_id}/graph
+GET  /api/v1/sessions/{session_id}/alerts
+GET  /api/v1/sessions/{session_id}/filters
+GET  /api/v1/sessions/{session_id}/subgraph?node_id=...&k=2
+```
 
----
+Frontend адаптирован к этому контракту. Архивный frontend изначально ожидал `/api/v1/graph/processing/...`, но сейчас клиентские функции переподключены на текущие backend endpoints.
 
-## Скоринг риска
+SSE также отдаёт `analysis_result` с cluster labels и node scoring для вкладки кластеров во frontend.
 
-risk_score = σ(0.25 * degree + 0.40 * cycle_flag + 0.20 * balance_deviation + 0.15 * shared_device_flag)
+## Проверки
 
-σ(x) = 1 / (1 + e^(-x))
+Backend:
 
----
+```powershell
+cd backend
+uv run pytest
+uv run ruff check . --config=ruff.toml
+uv run ty check
+```
 
-## TODO / Roadmap
+Frontend:
 
-## В работе / ближайший приоритет (MVP — 7–11 мая)
+```powershell
+cd frontend
+npm.cmd run eslint-check
+npm.cmd run prettier-check
+npm.cmd run build
+```
 
-- [x] Создание монорепозитория (backend + frontend)
-- [x] CSV Upload API (`/api/upload`) + парсинг через pandas
-- [x] Column Mapper (backend + frontend)
-- [ ] Построение графа через NetworkX (DiGraph)
-- [ ] Session storage (in-memory, UUID)
-- [x] SSE поток (`/api/stream`) с chunked graph delivery
-- [ ] Детектор циклов (simple_cycles, 2–6)
-- [ ] Fan-out detector (groupby sender)
-- [ ] Risk scoring model:
-    - degree
-    - cycle flag
-    - balance deviation
-    - shared device signal
-- [ ] Базовая интеграция cosmos.gl (рендер графа)
-- [ ] Цвет узлов по risk_score / entity_type
-- [ ] FileUploader + routing `/graph/[sessionId]`
-- [ ] SSE client + progress UI
-- [ ] DetailPanel (node attributes + risk breakdown)
-- [ ] Sidebar фильтры по типам узлов
+API E2E smoke:
 
----
+```powershell
+cd backend
+uv run pytest tests/test_e2e_mvp.py
+```
 
-## Неделя 2 — основная функциональность (12–18 мая)
+## Docker
 
-- [ ] Betweenness centrality (оптимизированная версия k-sampling)
-- [ ] Размер узлов = risk_score mapping
-- [ ] Толщина рёбер = transaction amount
-- [ ] Shared device detector (device/ip → multi-client)
-- [ ] Column mapping UI (frontend dropdown mapping schema)
-- [ ] ForceAtlas2 layout (server-side precompute)
-- [ ] SSE событие `layout_done` + координаты узлов
-- [ ] Cosmos.gl: отключение симуляции, только render fixed layout
-- [ ] Temporal slider (frontend filtering by timestamp)
-- [ ] Graph state store (frontend cache, graph-store.ts)
-- [ ] k-hop backend endpoint (`/api/khop`)
-- [ ] k-hop frontend expand (incremental graph growth)
-- [ ] Progress streaming для тяжёлых вычислений
-- [ ] Оптимизация betweenness для больших графов (>50k)
+В репозитории есть `Dockerfile` и `docker-compose.yaml` для backend и frontend:
 
----
+```powershell
+copy .env.example .env
+docker compose -f docker-compose.yaml --env-file .env config
+docker compose -f docker-compose.yaml --env-file .env up --build
+```
 
-## Функциональные улучшения (из плана работ, но в scope MVP)
+В текущем окружении Docker CLI не найден, поэтому Docker Compose не был подтверждён запуском. PostgreSQL, Redis, RabbitMQ и worker в текущий compose не входят.
 
-- [ ] Единая схема risk model (документирование формулы)
-- [ ] AMLSim integration (dataset 100k nodes)
-- [ ] Stress test pipeline:
-    - graph build
-    - rendering
-    - detectors
-- [ ] FPS/latency profiling cosmos.gl
-- [ ] Fallback стратегии:
-    - ограничение k-hop
-    - top-N degree nodes для betweenness
-    - деградация визуализации при >100k nodes
+## Optional GNN Dataset
 
----
+GNN не подключён к runtime backend и не используется в upload pipeline. Сейчас есть offline NumPy GCN baseline, где каждая транзакция становится node, а `Is Laundering` используется как transaction-level label. Результаты текущего smoke-эксперимента сохранены в `results/gnn_metrics.json` и `results/GNN_EXPERIMENT_REPORT.md`; это маленький synthetic fixture, не production evidence.
 
-## Вне scope MVP (исключено из 19-дневного плана)
+Проверить построение dataset:
 
-- [ ] Aggregation / supernodes (setPointClusters)
-- [ ] WCC segmentation pipeline
-- [ ] Backend filtering endpoint `/api/filter`
-- [ ] Graph Neural Networks (GNN)
-- [ ] Kafka real-time streaming
-- [ ] PostgreSQL / Redis persistence layer
-- [ ] Multi-user collaboration mode
-- [ ] SWIFT / банковские интеграции
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m src.ml.gnn_baseline --input tests/fixtures/ibm_aml_patterns.csv --describe-only
+```
 
----
+Запустить NumPy GCN smoke-обучение:
 
-## Неделя 3 — документация и сдача (19–26 мая)
+```powershell
+$env:PYTHONPATH='backend'
+.\backend\.venv\Scripts\python.exe -m src.ml.gnn_baseline --input backend\tests\fixtures\ibm_aml_patterns.csv --expand-size 1000 --epochs 200 --hidden-dim 16 --metrics-output results\gnn_metrics.json --report-output results\GNN_EXPERIMENT_REPORT.md
+```
 
-- [ ] Генерация скриншотов интерфейса по мере разработки
+GNN training остаётся offline-экспериментом и не входит в upload pipeline. На текущем synthetic expansion feature-only baseline показывает те же метрики, поэтому преимущество GNN не доказано.
 
----
+## Benchmark
 
-## Финальная стадия
+```powershell
+$env:PYTHONPATH='backend'
+.\backend\.venv\Scripts\python.exe -m src.benchmark --input backend\tests\fixtures\ibm_aml_patterns.csv --results-dir results --sizes 1000,5000,10000 --layout-max-nodes 500
+```
 
-- [ ] End-to-end тестирование системы
-- [ ] Проверка производительности (betweenness / SSE / render)
-- [ ] Оптимизация узких мест
-- [ ] Полировка UI (cosmos.gl стабильность)
-- [ ] Проверка работы на AMLSim (100k+ транзакций)
-- [ ] Финальная сборка проекта и фиксация версии
+Outputs:
 
----
+- `results/benchmark_results.csv`;
+- `results/BENCHMARK_REPORT.md`.
 
-## Критические правила выполнения
+Текущий успешный benchmark подтверждён на 1 000, 5 000 и 10 000 transactions. 50 000 и 100 000 transactions не проверены и не должны заявляться без свежего результата в `results/`.
 
-- MVP должен быть полностью готов к **11 мая**
-- новые фичи после 11 мая = только расширение, не блокер
-- текст пишется параллельно разработке
-- каждый день → минимум 1 артефакт (скрин / фича / описание)
-- при перегрузе производительности → упрощаем алгоритм, а не добавляем инфраструктуру
+## Ограничения
 
----
-
-## Команда
-
-- Куторгин Руслан - Б9123-01.03.02сп
-- Глобин Дмитрий - Б9122-01.03.02мкт
-
-Тема: «Разработка визуализатора больших графов для финансовых следователей»
-
-ДВФУ, ИМиКТ, 2026
+- Session storage находится в памяти.
+- Session results теряются при restart backend.
+- Нет фоновой очереди задач в текущем backend runtime.
+- Нет persistent database в текущем backend runtime.
+- Нет AGC clustering в текущем backend pipeline.
+- Нет GNN scoring.
+- Shared device/IP detector пуст для чистого IBM CSV без таких колонок.
+- NetworkX и server-side layout ограничивают масштаб.

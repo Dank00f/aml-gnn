@@ -1,0 +1,10 @@
+{
+  "input": "data\\ibm_archive\\IBM-Small_Trans_1000.csv",
+  "output": "data\\generated\\ibm_realistic_gnn_1246.csv",
+  "seed": 42,
+  "total_rows": 1246,
+  "positive_rows": 138,
+  "negative_rows": 1108,
+  "injected_positive_rows": 138,
+  "injected_benign_rows": 108
+}

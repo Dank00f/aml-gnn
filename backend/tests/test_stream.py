@@ -22,6 +22,7 @@ async def test_stream_contains_all_events(client: AsyncClient, session_id: str) 
         'event: edges_chunk',
         'event: layout_done',
         'event: detector_result',
+        'event: analysis_result',
         'event: stream_done',
     ]
     for event in expected_events:
@@ -59,6 +60,24 @@ async def test_stream_detector_results_all_patterns(client: AsyncClient, session
             pattern_types.add(data['pattern_type'])
 
     assert pattern_types == {'cycles', 'fanout', 'transit', 'shared_device'}
+
+
+async def test_stream_analysis_result(client: AsyncClient, session_id: str) -> None:
+    import json
+
+    response = await client.get(f'/api/v1/stream/{session_id}')
+    lines = response.text.splitlines()
+
+    analysis: dict | None = None
+    for i, line in enumerate(lines):
+        if line == 'event: analysis_result' and i + 1 < len(lines):
+            analysis = json.loads(lines[i + 1].removeprefix('data: '))
+            break
+
+    assert analysis is not None
+    assert analysis['clustering']['n_clusters'] >= 1
+    assert len(analysis['clustering']['labels']) == 3
+    assert analysis['node_scoring']['method'] == 'alert_noisy_or'
 
 
 async def test_stream_contains_completed_stage(client: AsyncClient, session_id: str) -> None:

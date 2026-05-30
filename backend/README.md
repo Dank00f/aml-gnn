@@ -148,22 +148,19 @@ stable clusters and readable suspicious neighborhoods rather than exact
 geographic coordinates. For large graphs, layout is calculated for a high-degree
 subgraph and remaining nodes are placed near already positioned neighbors.
 
-## Optional GNN Baseline
+## Optional GNN Dataset
 
-GNN is a future/offline experiment and is not part of the mandatory backend
-runtime. The current code builds a transaction-node dataset scaffold only; it
-does not train or serve a model from the upload/API path. The intended direction
-matches common AML GNN notebooks such as the linked Kaggle reference: transaction
-labels are treated as transaction-node labels, not direct account-node labels.
-
-Dataset construction:
+GNN training/scoring is not part of the backend runtime. The tracked code only
+contains an offline dataset entrypoint for future experiments:
 
 ```powershell
-uv run python -m src.ml.gnn_baseline --input data/ibm_sample.csv --epochs 5 --fast
+.\.venv\Scripts\python.exe -m src.ml.gnn_baseline --input tests/fixtures/ibm_aml_patterns.csv --describe-only
 ```
 
-If PyTorch is not installed, the script raises a clear `RuntimeError`. Upload
-and API endpoints do not import PyTorch.
+The experimental formulation is transaction-level classification: each
+transaction is a node, graph edges connect related transactions, and IBM
+`Is Laundering` is used as a transaction label. The upload path, SSE stream,
+detectors, and risk scoring do not import PyTorch or PyG.
 
 ## Limitations
 
@@ -172,4 +169,4 @@ and API endpoints do not import PyTorch.
 - No distributed storage or background job queue.
 - Layout is limited for very large graphs and uses a subgraph/fallback strategy.
 - Pure IBM CSV has no `device_id` or `ip_address`, so shared identity alerts are empty unless such columns are present in normalized data.
-- GNN is only a dataset/baseline scaffold for future work; it is not used by rule-based scoring.
+- GNN training/scoring is future work and is not used by rule-based scoring.
