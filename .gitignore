@@ -417,3 +417,13 @@ frontend/dist/.vs/
 *.zip
 .vs/
 *.zip
+.env.*
+!.env.example
+.next/
+.vite/
+*.db
+*.sqlite
+*.sqlite3
+*.parquet
+uploads/
+artifacts/

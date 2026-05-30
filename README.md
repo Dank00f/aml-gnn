@@ -1,24 +1,24 @@
-# AML Graph
+﻿# AML Graph
 
-MVP дипломного проекта для визуального AML/anti-fraud анализа транзакционного графа.
+MVP РґРёРїР»РѕРјРЅРѕРіРѕ РїСЂРѕРµРєС‚Р° РґР»СЏ РІРёР·СѓР°Р»СЊРЅРѕРіРѕ AML/anti-fraud Р°РЅР°Р»РёР·Р° С‚СЂР°РЅР·Р°РєС†РёРѕРЅРЅРѕРіРѕ РіСЂР°С„Р°.
 
-Текущий проверенный состав:
+РўРµРєСѓС‰РёР№ РїСЂРѕРІРµСЂРµРЅРЅС‹Р№ СЃРѕСЃС‚Р°РІ:
 
 - FastAPI backend;
-- pandas parser для IBM Transactions for AML CSV;
+- pandas parser РґР»СЏ IBM Transactions for AML CSV;
 - NetworkX `MultiDiGraph`;
 - rule-based detectors: cycles, fan-out, transit, shared device/IP;
-- risk scoring по alerts;
-- clustering: Louvain на небольших графах и WCC fallback на крупных;
+- risk scoring РїРѕ alerts;
+- clustering: Louvain РЅР° РЅРµР±РѕР»СЊС€РёС… РіСЂР°С„Р°С… Рё WCC fallback РЅР° РєСЂСѓРїРЅС‹С…;
 - server-side layout;
 - SSE stream;
-- frontend из архивной версии проекта на Next.js + React + TypeScript + cosmos.gl;
-- frontend risk filter, detail panel выбранного узла и раскрываемые детали связанных транзакций;
+- frontend РёР· Р°СЂС…РёРІРЅРѕР№ РІРµСЂСЃРёРё РїСЂРѕРµРєС‚Р° РЅР° Next.js + React + TypeScript + cosmos.gl;
+- frontend risk filter, detail panel РІС‹Р±СЂР°РЅРЅРѕРіРѕ СѓР·Р»Р° Рё СЂР°СЃРєСЂС‹РІР°РµРјС‹Рµ РґРµС‚Р°Р»Рё СЃРІСЏР·Р°РЅРЅС‹С… С‚СЂР°РЅР·Р°РєС†РёР№;
 - backend tests;
 - benchmark script.
 - optional offline GNN dataset and NumPy GCN baseline.
 
-## Стек
+## РЎС‚РµРє
 
 Backend:
 
@@ -40,59 +40,59 @@ Frontend:
 - Tailwind CSS;
 - `@cosmos.gl/graph`.
 
-Не используется в текущем backend runtime: PostgreSQL, Redis, RabbitMQ, Taskiq, LadybugDB, GNN training/inference.
+РќРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ С‚РµРєСѓС‰РµРј backend runtime: PostgreSQL, Redis, RabbitMQ, Taskiq, LadybugDB, GNN training/inference.
 
-## Запуск Backend
+## Р—Р°РїСѓСЃРє Backend
 
 ```powershell
-cd C:\Users\Dankoff\PycharmProjects\aml-graph\backend
+cd D:\DESKTOP\aml-gnn\backend
 uv sync
 uv run python -m src.main
 ```
 
-Проверка:
+РџСЂРѕРІРµСЂРєР°:
 
 ```powershell
 Invoke-RestMethod http://127.0.0.1:9090/api/v1/health
 ```
 
-Ожидаемый ответ:
+РћР¶РёРґР°РµРјС‹Р№ РѕС‚РІРµС‚:
 
 ```json
 {"status":"ok"}
 ```
 
-## Запуск Frontend
+## Р—Р°РїСѓСЃРє Frontend
 
 ```powershell
-cd C:\Users\Dankoff\PycharmProjects\aml-graph\frontend
+cd D:\DESKTOP\aml-gnn\frontend
 npm.cmd install
 npm.cmd run dev
 ```
 
-Открыть:
+РћС‚РєСЂС‹С‚СЊ:
 
 ```text
 http://127.0.0.1:3000
 ```
 
-Frontend ожидает backend на:
+Frontend РѕР¶РёРґР°РµС‚ backend РЅР°:
 
 ```text
 http://127.0.0.1:9090
 ```
 
-Это задано в `.env.example` через `NEXT_PUBLIC_API_BASE`.
+Р­С‚Рѕ Р·Р°РґР°РЅРѕ РІ `.env.example` С‡РµСЂРµР· `NEXT_PUBLIC_API_BASE`.
 
-## CSV Формат
+## CSV Р¤РѕСЂРјР°С‚
 
-Основной endpoint:
+РћСЃРЅРѕРІРЅРѕР№ endpoint:
 
 ```http
 POST /api/v1/upload/ibm
 ```
 
-Ожидаемые IBM columns:
+РћР¶РёРґР°РµРјС‹Рµ IBM columns:
 
 - `Timestamp`
 - `From Bank`
@@ -106,20 +106,20 @@ POST /api/v1/upload/ibm
 - `Payment Format`
 - `Is Laundering`
 
-Нормализация:
+РќРѕСЂРјР°Р»РёР·Р°С†РёСЏ:
 
 - `sender_id = From Bank + ":" + Account`;
 - `receiver_id = To Bank + ":" + Account.1`;
 - `amount = Amount Paid`;
-- `Is Laundering` хранится как label и не используется в rule-based scoring.
+- `Is Laundering` С…СЂР°РЅРёС‚СЃСЏ РєР°Рє label Рё РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ rule-based scoring.
 
-Excel upload не включён. `.xlsx/.xls` сейчас roadmap.
+Excel upload РЅРµ РІРєР»СЋС‡С‘РЅ. `.xlsx/.xls` СЃРµР№С‡Р°СЃ roadmap.
 
 ## API
 
-См. [docs/API_AND_SSE_CONTRACT.md](docs/API_AND_SSE_CONTRACT.md).
+РЎРј. [docs/API_AND_SSE_CONTRACT.md](docs/API_AND_SSE_CONTRACT.md).
 
-Основные endpoints:
+РћСЃРЅРѕРІРЅС‹Рµ endpoints:
 
 ```text
 POST /api/v1/upload/ibm
@@ -132,11 +132,11 @@ GET  /api/v1/sessions/{session_id}/filters
 GET  /api/v1/sessions/{session_id}/subgraph?node_id=...&k=2
 ```
 
-Frontend адаптирован к этому контракту. Архивный frontend изначально ожидал `/api/v1/graph/processing/...`, но сейчас клиентские функции переподключены на текущие backend endpoints.
+Frontend Р°РґР°РїС‚РёСЂРѕРІР°РЅ Рє СЌС‚РѕРјСѓ РєРѕРЅС‚СЂР°РєС‚Сѓ. РђСЂС…РёРІРЅС‹Р№ frontend РёР·РЅР°С‡Р°Р»СЊРЅРѕ РѕР¶РёРґР°Р» `/api/v1/graph/processing/...`, РЅРѕ СЃРµР№С‡Р°СЃ РєР»РёРµРЅС‚СЃРєРёРµ С„СѓРЅРєС†РёРё РїРµСЂРµРїРѕРґРєР»СЋС‡РµРЅС‹ РЅР° С‚РµРєСѓС‰РёРµ backend endpoints.
 
-SSE также отдаёт `analysis_result` с cluster labels и node scoring для вкладки кластеров во frontend.
+SSE С‚Р°РєР¶Рµ РѕС‚РґР°С‘С‚ `analysis_result` СЃ cluster labels Рё node scoring РґР»СЏ РІРєР»Р°РґРєРё РєР»Р°СЃС‚РµСЂРѕРІ РІРѕ frontend.
 
-## Проверки
+## РџСЂРѕРІРµСЂРєРё
 
 Backend:
 
@@ -165,7 +165,7 @@ uv run pytest tests/test_e2e_mvp.py
 
 ## Docker
 
-В репозитории есть `Dockerfile` и `docker-compose.yaml` для backend и frontend:
+Р’ СЂРµРїРѕР·РёС‚РѕСЂРёРё РµСЃС‚СЊ `Dockerfile` Рё `docker-compose.yaml` РґР»СЏ backend Рё frontend:
 
 ```powershell
 copy .env.example .env
@@ -173,27 +173,27 @@ docker compose -f docker-compose.yaml --env-file .env config
 docker compose -f docker-compose.yaml --env-file .env up --build
 ```
 
-В текущем окружении Docker CLI не найден, поэтому Docker Compose не был подтверждён запуском. PostgreSQL, Redis, RabbitMQ и worker в текущий compose не входят.
+Р’ С‚РµРєСѓС‰РµРј РѕРєСЂСѓР¶РµРЅРёРё Docker CLI РЅРµ РЅР°Р№РґРµРЅ, РїРѕСЌС‚РѕРјСѓ Docker Compose РЅРµ Р±С‹Р» РїРѕРґС‚РІРµСЂР¶РґС‘РЅ Р·Р°РїСѓСЃРєРѕРј. PostgreSQL, Redis, RabbitMQ Рё worker РІ С‚РµРєСѓС‰РёР№ compose РЅРµ РІС…РѕРґСЏС‚.
 
 ## Optional GNN Dataset
 
-GNN не подключён к runtime backend и не используется в upload pipeline. Сейчас есть offline NumPy GCN baseline, где каждая транзакция становится node, а `Is Laundering` используется как transaction-level label. Результаты текущего smoke-эксперимента сохранены в `results/gnn_metrics.json` и `results/GNN_EXPERIMENT_REPORT.md`; это маленький synthetic fixture, не production evidence.
+GNN РЅРµ РїРѕРґРєР»СЋС‡С‘РЅ Рє runtime backend Рё РЅРµ РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РІ upload pipeline. РЎРµР№С‡Р°СЃ РµСЃС‚СЊ offline NumPy GCN baseline, РіРґРµ РєР°Р¶РґР°СЏ С‚СЂР°РЅР·Р°РєС†РёСЏ СЃС‚Р°РЅРѕРІРёС‚СЃСЏ node, Р° `Is Laundering` РёСЃРїРѕР»СЊР·СѓРµС‚СЃСЏ РєР°Рє transaction-level label. Р РµР·СѓР»СЊС‚Р°С‚С‹ С‚РµРєСѓС‰РµРіРѕ smoke-СЌРєСЃРїРµСЂРёРјРµРЅС‚Р° СЃРѕС…СЂР°РЅРµРЅС‹ РІ `results/gnn_metrics.json` Рё `results/GNN_EXPERIMENT_REPORT.md`; СЌС‚Рѕ РјР°Р»РµРЅСЊРєРёР№ synthetic fixture, РЅРµ production evidence.
 
-Проверить построение dataset:
+РџСЂРѕРІРµСЂРёС‚СЊ РїРѕСЃС‚СЂРѕРµРЅРёРµ dataset:
 
 ```powershell
 cd backend
 .\.venv\Scripts\python.exe -m src.ml.gnn_baseline --input tests/fixtures/ibm_aml_patterns.csv --describe-only
 ```
 
-Запустить NumPy GCN smoke-обучение:
+Р—Р°РїСѓСЃС‚РёС‚СЊ NumPy GCN smoke-РѕР±СѓС‡РµРЅРёРµ:
 
 ```powershell
 $env:PYTHONPATH='backend'
 .\backend\.venv\Scripts\python.exe -m src.ml.gnn_baseline --input backend\tests\fixtures\ibm_aml_patterns.csv --expand-size 1000 --epochs 200 --hidden-dim 16 --metrics-output results\gnn_metrics.json --report-output results\GNN_EXPERIMENT_REPORT.md
 ```
 
-GNN training остаётся offline-экспериментом и не входит в upload pipeline. На текущем synthetic expansion feature-only baseline показывает те же метрики, поэтому преимущество GNN не доказано.
+GNN training РѕСЃС‚Р°С‘С‚СЃСЏ offline-СЌРєСЃРїРµСЂРёРјРµРЅС‚РѕРј Рё РЅРµ РІС…РѕРґРёС‚ РІ upload pipeline. РќР° С‚РµРєСѓС‰РµРј synthetic expansion feature-only baseline РїРѕРєР°Р·С‹РІР°РµС‚ С‚Рµ Р¶Рµ РјРµС‚СЂРёРєРё, РїРѕСЌС‚РѕРјСѓ РїСЂРµРёРјСѓС‰РµСЃС‚РІРѕ GNN РЅРµ РґРѕРєР°Р·Р°РЅРѕ.
 
 ## Benchmark
 
@@ -207,15 +207,16 @@ Outputs:
 - `results/benchmark_results.csv`;
 - `results/BENCHMARK_REPORT.md`.
 
-Текущий успешный benchmark подтверждён на 1 000, 5 000 и 10 000 transactions. 50 000 и 100 000 transactions не проверены и не должны заявляться без свежего результата в `results/`.
+РўРµРєСѓС‰РёР№ СѓСЃРїРµС€РЅС‹Р№ benchmark РїРѕРґС‚РІРµСЂР¶РґС‘РЅ РЅР° 1 000, 5 000 Рё 10 000 transactions. 50 000 Рё 100 000 transactions РЅРµ РїСЂРѕРІРµСЂРµРЅС‹ Рё РЅРµ РґРѕР»Р¶РЅС‹ Р·Р°СЏРІР»СЏС‚СЊСЃСЏ Р±РµР· СЃРІРµР¶РµРіРѕ СЂРµР·СѓР»СЊС‚Р°С‚Р° РІ `results/`.
 
-## Ограничения
+## РћРіСЂР°РЅРёС‡РµРЅРёСЏ
 
-- Session storage находится в памяти.
-- Session results теряются при restart backend.
-- Нет фоновой очереди задач в текущем backend runtime.
-- Нет persistent database в текущем backend runtime.
-- Нет AGC clustering в текущем backend pipeline.
-- Нет GNN scoring.
-- Shared device/IP detector пуст для чистого IBM CSV без таких колонок.
-- NetworkX и server-side layout ограничивают масштаб.
+- Session storage РЅР°С…РѕРґРёС‚СЃСЏ РІ РїР°РјСЏС‚Рё.
+- Session results С‚РµСЂСЏСЋС‚СЃСЏ РїСЂРё restart backend.
+- РќРµС‚ С„РѕРЅРѕРІРѕР№ РѕС‡РµСЂРµРґРё Р·Р°РґР°С‡ РІ С‚РµРєСѓС‰РµРј backend runtime.
+- РќРµС‚ persistent database РІ С‚РµРєСѓС‰РµРј backend runtime.
+- РќРµС‚ AGC clustering РІ С‚РµРєСѓС‰РµРј backend pipeline.
+- РќРµС‚ GNN scoring.
+- Shared device/IP detector РїСѓСЃС‚ РґР»СЏ С‡РёСЃС‚РѕРіРѕ IBM CSV Р±РµР· С‚Р°РєРёС… РєРѕР»РѕРЅРѕРє.
+- NetworkX Рё server-side layout РѕРіСЂР°РЅРёС‡РёРІР°СЋС‚ РјР°СЃС€С‚Р°Р±.
+
